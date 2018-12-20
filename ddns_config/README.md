@@ -58,28 +58,17 @@
 
 1. 配置ddns入口
 
-    在`/etc/config/ddns`文件后面增加以下内容:
+    在`/etc/config/ddns`文件后面增加[west.cn.ddns](./west.cn.ddns)内容:
 
-    ```txt
-    config service '3321'
-      option interface 'wan'
-      option ip_source 'web'
-      option ip_url 'http://ip.3322.net/'
-      option force_interval '2'
-      option enabled '1'
-      option lookup_host 'route.codedog.store'
-      option dns_server '114.114.114.114'
-      option check_interval '5'
-      option update_script '/root/west.cn.sh'
-    ```
+    `cat west.cn.ddns >> /etc/config/ddns `
 
     `config service '3321'`这里定义的名字3321可以替换成任意有意义的字符
     每个option都是脚本中可以访问的变量，如`$update_script`
 
-    这个配置里只需要修改域名及脚本:
+    配置里只需要修改域名及脚本:
 
     ```txt
-    option lookup_host 'route.codedog.store'
+    option lookup_host 'route.yourdomain.store'
     option update_script '/root/west.cn.sh'
     ```
 
@@ -96,33 +85,68 @@
 
     [openwrt ddns脚本及配置示例][1] 这个会是你需要的
 
+## ssh遂道
+
+当无公网IP而又需要在外网管理路由，这里需要一个vps,假设其ip及端口为 VPSIP , VPSPORT
+
+1. 创建密钥
+
+    ```shell
+    dropbearkey -t rsa -f ${VPSIP}.id_rsa -s 2048
+    dropbearkey -t rsa -f ${VPSIP}.id_rsa -y|grep "^ssh-rsa" > ${VPSIP}.id_rsa.pub
+    ```
+
+1. 脚本
+
+    将脚本[checkssh.sh](./checkssh.sh) 放到`/root/`目录下
+
+    该脚本检查ssh遂道是否创建，没有的话就创建
+    脚本将VPSIP上的20022端口转发到路由本地的22端口，由于VPSIP是公网IP,所以该端口转发使得在外网也可以访问路由
+
+1. 配置定时启动
+
+    在`http://192.168.1.1`菜单选**系统** ->  **计划任务**
+    
+    **添加** 然后选**自定义***
+
+    任务名和cron参数如下:
+
+    ```txt
+    VPS SSH TUN
+    */5 * * * * /root/checkssh.sh
+    ```
+
+    如图:
+    ![CRONJOB_VPS-SSH-TUN.png](./CRONJOB_VPS-SSH-TUN.png)
+
+## 第三重保险
+
+由于域名服务端和dns服务之间的推送未必及时, 可以额外布署脚本定时访问VPS上的nginx服务，然后从日志`/var/run/nginx/access.log`中找到IP
+
+1. 脚本`query.sh`
+
+    ```shell
+    echo run $0 > /tmp/hello.tmp
+    date >> /tmp/hello.tmp
+    /usr/bin/wget 'http://VPSIP/whoami' -a /tmp/hello.tmp
+    ```
+
+1. 配置
+
+    如`VPS SSH TUN`一样配置计划任务
+
+    `*/10 * * * * /root/query.sh`
+
+    记得启用，保存及应用
+
+1. 查IP
+
+    登入VPSIP, 输入以下脚本
+
+    `sudo tail -f /var/log/nginx/access.log|grep whoami`
+
 ## 参考
 
 [openwrt ddns脚本及配置示例][1]
 
 [1]: https://github.com/openwrt/packages/tree/master/net/ddns-scripts/samples/ "openwrt ddns脚本及配置示例"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
