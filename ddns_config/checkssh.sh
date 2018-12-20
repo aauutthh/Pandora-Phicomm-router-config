@@ -1,5 +1,6 @@
 #!/bin/sh
 # dropbearkey -f yy -t rsa -s 2048
+export PATH=/bin:/sbin/:/usr/bin:/usr/sbin
 port=20022
 VPSPORT=22000
 VPSUSER=root

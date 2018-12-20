@@ -9,9 +9,9 @@ __CMDBASE="${__CMDBASE}  --header 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) A
 __CMDBASE="${__CMDBASE}  --header 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8'"
 __CMDBASE="${__CMDBASE}  -O $DATFILE -o $ERRFILE"
 
-__URLBASE="https://www.west.cn/Manager/domain/load.asp" \
+__URLBASE="https://www.west.cn/Manager/domain/load.asp"
 
-    __RUNPROG="${__CMDBASE} ${__URLBASE}"
+__RUNPROG="${__CMDBASE} ${__URLBASE}"
 
 write_log 6 "#> $__RUNPROG"
 eval $__RUNPROG
